@@ -16,21 +16,3 @@ def analyze_data(df):
         }
     
     return result
-
-# 使用例
-data = {
-    'A': [1, 2, 2, 3, None, 1, 2],
-    'B': ['apple', 'banana', 'apple', None, 'banana', 'apple', 'banana'],
-    'C': [True, False, True, True, None, False, True]
-}
-
-df = pd.DataFrame(data)
-result = analyze_data(df)
-
-# 結果を出力
-for col, stats in result.items():
-    print(f"Column: {col}")
-    print(f"  Unique Values: {stats['Unique Values']}")
-    print(f"  Missing Values: {stats['Missing Values']}")
-    print(f"  Value Counts: {stats['Value Counts']}")
-    print("-")
