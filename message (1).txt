@@ -1,0 +1,176 @@
+1. 他のベースラインの立て方
+(1) シンプルなモデルで堅実なスコアを出す
+ロジスティック回帰や決定木はシンプルなベースラインになりますが、
+SVM, K近傍法(KNN), Naive Bayes なども試す価値があります。
+例えば:
+ロジスティック回帰: LogisticRegression()
+ランダムフォレスト: RandomForestClassifier()
+XGBoost: XGBClassifier()
+LightGBM: LGBMClassifier()
+CatBoost: CatBoostClassifier()
+python
+コピーする
+編集する
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+from lightgbm import LGBMClassifier
+
+models = {
+    "RandomForest": RandomForestClassifier(n_estimators=100, max_depth=5),
+    "XGBoost": XGBClassifier(n_estimators=100, max_depth=3, learning_rate=0.1),
+    "LightGBM": LGBMClassifier(n_estimators=100, max_depth=3, learning_rate=0.1)
+}
+
+for name, model in models.items():
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_valid)
+    print(f"{name} Accuracy:", accuracy_score(y_valid, y_pred))
+各モデルを試して、一番良いものを選びます。
+
+(2) k-Fold 交差検証で信頼できるベースラインを作る
+ベースラインを作る際、 train_test_split() のみでは不十分 な場合があります。
+k-Fold交差検証（Cross-validation） を使うことで、データの分割によるスコアのブレを抑えます。
+
+python
+コピーする
+編集する
+from sklearn.model_selection import cross_val_score
+
+model = XGBClassifier(n_estimators=100, max_depth=3, learning_rate=0.1)
+
+# 5-fold交差検証
+scores = cross_val_score(model, X, y, cv=5, scoring='accuracy')
+print("Cross-validation Accuracy:", scores.mean())
+k-Foldを使うことで、 安定したベースラインを確立 できます。
+
+(3) トレンドに応じたアプローチ
+① テーブルデータなら Deep Learning (TabNet, SAINT)
+XGBoost や LightGBM は強力ですが、最近は TabNet, SAINT などのディープラーニング系の手法もKaggleで結果を出しています。
+TabNetの実装例
+python
+コピーする
+編集する
+from pytorch_tabnet.tab_model import TabNetClassifier
+
+model = TabNetClassifier()
+model.fit(X_train.values, y_train.values, eval_set=[(X_valid.values, y_valid.values)])
+y_pred = model.predict(X_valid.values)
+② Transformer を使う
+画像なら Vision Transformer (ViT)
+NLPなら BERT, RoBERTa, T5
+時系列なら Temporal Fusion Transformer (TFT)
+などを活用することで、 従来のML手法を超えることが可能 です。
+2. ベースラインの改良戦略（Kaggle上位狙い）
+(1) 特徴量エンジニアリングの極め方
+特徴量エンジニアリングがスコア向上の鍵になります。
+
+カテゴリ変数のエンコーディング
+
+One-Hot Encoding（カテゴリ数が少ない場合）
+Label Encoding（カテゴリが多い場合）
+Target Encoding（リークしないように工夫）
+交互作用特徴量（Feature Interaction）
+
+例: Fare * Pclass や Age * SibSp
+2つの特徴量を掛け合わせることで新しい情報を追加
+時系列データなら
+
+曜日, 月, 年 などの時間特徴量を追加
+移動平均, 時間ラグ を作成
+テキストデータなら
+
+TfidfVectorizer, Word2Vec, Sentence-BERT を使って数値化
+spaCy や nltk を活用
+例: カテゴリ変数のエンコーディング
+
+python
+コピーする
+編集する
+from sklearn.preprocessing import OneHotEncoder
+
+encoder = OneHotEncoder()
+encoded_features = encoder.fit_transform(train[['Sex', 'Embarked']]).toarray()
+(2) ハイパーパラメータチューニング
+適切なハイパーパラメータを調整するとスコアが劇的に向上します。
+
+方法1: GridSearchCV（時間がかかる）
+python
+コピーする
+編集する
+from sklearn.model_selection import GridSearchCV
+
+param_grid = {
+    'n_estimators': [50, 100, 200],
+    'max_depth': [3, 5, 7],
+    'learning_rate': [0.01, 0.1, 0.2]
+}
+
+grid_search = GridSearchCV(XGBClassifier(), param_grid, cv=5, scoring='accuracy')
+grid_search.fit(X_train, y_train)
+
+print("Best parameters:", grid_search.best_params_)
+方法2: Optuna（自動最適化）
+python
+コピーする
+編集する
+import optuna
+
+def objective(trial):
+    param = {
+        'n_estimators': trial.suggest_int('n_estimators', 50, 200),
+        'max_depth': trial.suggest_int('max_depth', 3, 10),
+        'learning_rate': trial.suggest_loguniform('learning_rate', 0.01, 0.2)
+    }
+    model = XGBClassifier(**param)
+    score = cross_val_score(model, X, y, cv=5, scoring='accuracy').mean()
+    return score
+
+study = optuna.create_study(direction='maximize')
+study.optimize(objective, n_trials=50)
+print("Best params:", study.best_params)
+Optunaを使うことで、自動的に最適なハイパーパラメータを見つける ことができます。
+
+(3) アンサンブル学習の工夫
+アンサンブル学習をうまく活用すると、スコアが大幅に向上します。
+
+① Stacking
+複数のモデルを組み合わせて、新しいメタモデルを作成。
+
+python
+コピーする
+編集する
+from sklearn.ensemble import StackingClassifier
+
+base_models = [
+    ('xgb', XGBClassifier(n_estimators=100)),
+    ('rf', RandomForestClassifier(n_estimators=100))
+]
+
+meta_model = LogisticRegression()
+stacking = StackingClassifier(estimators=base_models, final_estimator=meta_model)
+stacking.fit(X_train, y_train)
+② Blending
+単純なアンサンブルよりも、モデルごとの比率を調整することで改善。
+
+python
+コピーする
+編集する
+y_pred1 = model1.predict_proba(X_test)[:, 1]
+y_pred2 = model2.predict_proba(X_test)[:, 1]
+
+final_pred = 0.6 * y_pred1 + 0.4 * y_pred2
+3. Kaggleで上位に立つための戦略
+過去の上位解法を必ずチェック（Discussion, Kaggle Notebook）
+他の人のカーネル（Notebook）をフォークして試す
+データリークの可能性を疑う
+特徴量エンジニアリングに時間をかける
+ハイパーパラメータチューニングを自動化
+シングルモデルよりもアンサンブルを活用
+このような戦略を組み合わせることで、 Kaggleで上位5%に入る可能性が大きく上がります！
+
+
+
+
+
+
+

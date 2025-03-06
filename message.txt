@@ -1,0 +1,117 @@
+1. Machine Learning (機械学習) の攻略法
+機械学習系のコンペでは データの前処理・特徴量エンジニアリング・モデル選定・アンサンブル が重要です。
+
+攻略ポイント
+✅ (1) データの理解と前処理
+
+欠損値の処理（中央値補完、KNN補完など）
+カテゴリ変数のエンコーディング（One-Hot, Label Encoding, Target Encoding）
+外れ値の処理（IQR, ロジックベースの除外）
+スケーリング（標準化・正規化）
+✅ (2) 特徴量エンジニアリング
+
+交互作用特徴量（例: feature_1 * feature_2）
+時系列データならラグ特徴量や移動平均を追加
+PCAやUMAPで次元圧縮し、新しい特徴を作る
+Target EncodingやMean Encodingで情報を圧縮
+✅ (3) モデル選定
+
+ツリーベースモデル: LightGBM, XGBoost, CatBoost（非線形データに強い）
+線形モデル: Logistic Regression, Ridge, Lasso（特徴量が少ない場合に有効）
+ニューラルネット: TabNet, SAINT（特徴量エンジニアリングが難しい時）
+✅ (4) ハイパーパラメータ最適化
+
+Optuna / Hyperopt / GridSearchCV で調整
+例: XGBoost の max_depth, learning_rate, subsample をチューニング
+✅ (5) アンサンブル戦略
+
+複数モデルの出力を平均（Blending）
+Stacking を利用してメタモデルを学習
+Bagging (ランダムフォレスト), Boosting (XGBoost)
+🔥 上位を狙うなら:
+→ 特徴量エンジニアリングの工夫が最も重要！
+
+2. Computer Vision (CV) の攻略法
+画像系コンペでは データ拡張・転移学習・モデルアンサンブル が重要になります。
+
+攻略ポイント
+✅ (1) データ拡張（Data Augmentation）
+
+Albumentations, torchvision.transforms を活用
+画像分類なら Flip, Rotate, CutMix, Mixup
+セグメンテーションなら ElasticTransform, GridDistortion
+物体検出なら Mosaic Augmentation, Random Crop
+✅ (2) 転移学習（Transfer Learning）
+
+事前学習済みのモデルを活用
+ResNet, EfficientNet, ConvNeXt, ViT
+Hugging Face の timm を活用
+事前学習済みモデルの 出力層を変更してFine-tuning
+学習率を小さくしてファインチューニング (lr=1e-4)
+✅ (3) モデル選定
+
+画像分類: ResNet, EfficientNet, ConvNeXt, ViT
+物体検出: YOLOv8, Faster R-CNN, DETR
+セグメンテーション: U-Net, DeepLabV3+, SegFormer
+✅ (4) 損失関数の工夫
+
+分類: Focal Loss（クラス不均衡対策）
+検出: IoU Loss, GIoU Loss
+セグメンテーション: Dice Loss + BCE Loss
+✅ (5) モデルアンサンブル
+
+複数のCNNの予測を平均
+TTA（Test Time Augmentation）を活用
+🔥 上位を狙うなら:
+→ 事前学習済みモデルを活用し、適切なデータ拡張を組み合わせる！
+
+3. Deep Learning (深層学習) の攻略法
+ディープラーニングコンペでは アーキテクチャの選定・データ前処理・学習テクニック が重要になります。
+
+攻略ポイント
+✅ (1) 適切なニューラルネットワークを選ぶ
+
+テーブルデータ: TabNet, SAINT, Transformer
+画像: CNN（EfficientNet, ViT）
+自然言語: BERT, RoBERTa, T5
+時系列: LSTM, Transformer, TFT
+✅ (2) 学習を安定させるテクニック
+
+Batch Normalization & Layer Normalization
+Dropout / Data Augmentation
+Learning Rate Scheduler（CosineAnnealing, ReduceLROnPlateau）
+重みの初期化（He Initialization, Xavier Initialization）
+✅ (3) 最適化手法
+
+AdamW（一般的に最適）
+Ranger（SGD + Lookahead + RAdam）
+✅ (4) 事前学習の活用
+
+自然言語：Hugging Face Transformers (BERT, GPT, T5)
+画像：timm (ResNet, EfficientNet, ViT)
+時系列：Temporal Fusion Transformer (TFT)
+✅ (5) ハードウェアの活用
+
+GPU: Google Colab Pro / Kaggle GPU / AWS / Lambda Labs
+Mixed Precision Training (torch.float16) で学習を高速化
+🔥 上位を狙うなら:
+→ 事前学習済みモデル + 転移学習を活用し、高速学習の工夫をする！
+
+4. 各分野共通のKaggle攻略テクニック
+(1) 他の人のNotebookを活用する
+Kaggleの Code タブで上位のNotebookを確認し、改善ポイントを探す
+自分のデータと比較して新しい特徴量を追加
+(2) ハイパーパラメータ最適化
+GridSearchCV, Optuna, Hyperopt を活用
+CMA-ES などの進化的アルゴリズムで探索
+(3) Ensembling（アンサンブル）
+複数モデルの平均（Blending）
+Stacking（メタモデルを学習）
+TTA（Test Time Augmentation）で精度向上
+(4) データリーク（Data Leakage）に注意
+外部データを使用するときはリークがないか確認
+Target Encoding などのデータ依存の手法に注意
+(5) 参加者と交流し、情報を得る
+Kaggle Discussion で上位者のコメントを読む
+KaggleのSlackやDiscordで質問・情報交換
+他の参加者の Kernel (Notebook) をForkして改善点を探す
