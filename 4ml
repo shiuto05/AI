@@ -1,0 +1,36 @@
+def analyze_data(df):
+    """
+    データフレーム内の欠損値、ユニークな値の種類、各値の出現回数を確認する関数
+    """
+    result = {}
+    
+    for column in df.columns:
+        unique_values = df[column].nunique(dropna=True)
+        missing_values = df[column].isnull().sum()
+        value_counts = df[column].value_counts(dropna=True)
+        
+        result[column] = {
+            'Unique Values': unique_values,
+            'Missing Values': missing_values,
+            'Value Counts': value_counts.to_dict()
+        }
+    
+    return result
+
+# 使用例
+data = {
+    'A': [1, 2, 2, 3, None, 1, 2],
+    'B': ['apple', 'banana', 'apple', None, 'banana', 'apple', 'banana'],
+    'C': [True, False, True, True, None, False, True]
+}
+
+df = pd.DataFrame(data)
+result = analyze_data(df)
+
+# 結果を出力
+for col, stats in result.items():
+    print(f"Column: {col}")
+    print(f"  Unique Values: {stats['Unique Values']}")
+    print(f"  Missing Values: {stats['Missing Values']}")
+    print(f"  Value Counts: {stats['Value Counts']}")
+    print("-")
